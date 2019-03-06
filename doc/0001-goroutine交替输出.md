@@ -64,7 +64,7 @@ $ go run main.go
 
 12AB34CD56EF78GH910IJ
 ```
-- 解答
+- 实现（对应code003.go)
 ```
 package main
 
