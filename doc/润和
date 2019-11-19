@@ -1,0 +1,86 @@
+润和软件
+1. Go什么情况下会发烧内存泄漏？
+
+内存泄漏都是指针指向的内存无法被回收，因为引用没法释放。
+
+ 获取长字符串中的一段导致长字符串未释放
+ 获取长slice中的一段导致长slice未释放
+ 在长slice新建slice导致泄漏
+ goroutine泄漏
+ time.Ticker未关闭导致泄漏
+ Finalizer导致泄漏
+ Deferring Function Call 导致泄漏
+
+
+2. Go为什么高并发好？
+
+ 并发好：因为go的goroutine的存在，go的调度器能使成千上万个goroutine并发执行。
+ go的协程需要的资源可以很少，这些协程之间的内存共享，可同时运行成千上万个并发任务。
+ 其实，goroutine是一种非阻塞/异步io模型
+
+* 进程拥有自己独立的堆和栈，既不共享堆，亦不共享栈，进程由操作系统调度。
+
+* 线程拥有自己独立的栈和共享的堆，共享堆，不共享栈，线程亦由操作系统调度(标准线程是的)。
+
+* 协程和线程一样共享堆，不共享栈，协程由程序员在协程的代码里显示调度。
+
+协程和线程的区别是：协程避免了无意义的调度，由此可以提高性能，但也因此，程序员必须自己承担调度的责任。
+
+执行协程只需要极少的栈内存（大概是4～5KB），默认情况下，线程栈的大小为1MB。
+
+goroutine就是一段代码，一个函数入口，以及在堆上为其分配的一个堆栈。所以它非常廉价，我们可以很轻松的创建上万个goroutine，但它们并不是被操作系统所调度执行。
+
+3. Gevent是阻塞还是非阻塞？是同步还是异步？
+
+
+ Gevent是python的第三方库，提供了比较完善的对协程的支持。
+
+
+4. 解释一下goroutine、channel的意思？
+
+ goroutine是协程；channel是通信通道
+
+
+5. 解释一下go调度的意思？
+
+ go的调度器模型，G P M
+ 地鼠搬砖
+
+6. 执行下面的代码会发生什么？
+type Param map[string]interface{}
+
+type Show struct {
+	*Param
+}
+
+func main() {
+	s := new(Show)
+
+	// happen errors
+	s.Param["RMB"] = 10000 // type *Param does not support indexing.
+
+	// below is OK
+	param := make(Param)
+	s.Param = &param
+	(*s.Param)["RMB"] = 10000
+}
+
+解析：map 返回的是一个指针，所以在结构体中再使用指针的话，
+想要获取Param这个参数，那么map就需要使用：(*s.Param) 获取map。
+另外map变量在使用的时候需要初始化，所以不推荐在struct中使用指针map
+
+
+7. 执行下面的代码会发生什么？
+
+type student struct {
+	Name string
+}
+
+func zhoujielun(v interface{}) {
+	switch msg := v.(type) {
+	case *student, student:
+		msg.Name = "qq" // 这里会报错，显示msg不能引用Name；原因是msg不是student类型，只是获取了v的type类型，但是不拥有具体的data
+		fmt.Printf("%v", msg)
+	}
+}
+
